@@ -7,6 +7,9 @@
 #include "geometry_msgs/Pose2D.h"
 #include <time.h>
 #include <algorithm>
+#include "geometry_msgs/Twist.h"
+#include "sensor_msgs/PointCloud.h"
+#include <string>
 
 using namespace std;
 
@@ -23,7 +26,7 @@ class particle_swarm_opt
 public:
     particle_swarm_opt();
     ~particle_swarm_opt();
-    void beginParticleSwarmOpt(vector<geometry_msgs::Pose2D> ref_path, geometry_msgs::Pose2D now_pose, float now_v, float now_w);
+    geometry_msgs::Twist beginParticleSwarmOpt(vector<geometry_msgs::Pose2D> ref_path, geometry_msgs::Pose2D now_pose, float now_v, float now_w);
 
 private:
     int num_of_particles_;
@@ -40,12 +43,16 @@ private:
     vector<geometry_msgs::Pose2D> ref_path_;
 
     ros::NodeHandle n_;
+    ros::Publisher pub_trajectory_;
+    ros::Publisher pub_ref_path_;
 
     void initParticleSwarm();
     void updateParticleSwarm();
     float calculateFitnessValue(one_particle particle);
 
     void printParticle(one_particle particle);
+    void displayTrajectory(one_particle particle, float values);
+    void displayRefPath(float values);
 };
 
 bool operator<(one_particle a, one_particle b);

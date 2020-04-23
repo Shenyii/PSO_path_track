@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   tf
+  nav_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -208,6 +209,6 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(pso_path_tracking src/main.cpp src/pso_algorithm.cpp)
+add_executable(pso_path_tracking src/main.cpp src/pso_algorithm.cpp src/tf_listerner.cpp)
 target_link_libraries(pso_path_tracking ${catkin_LIBRARIES})
 add_dependencies(pso_path_tracking PSO_path_track_gencpp)
