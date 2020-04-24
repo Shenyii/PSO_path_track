@@ -1,0 +1,13 @@
+<launch>
+    <node name="rviz" pkg="rviz" type="rviz" output="screen"/>
+
+    <node name="robot_kinematic_model" pkg="path_track" type="robot_kinematic_model"/>
+
+    <node name="teleop_twist_keyboard" type="teleop_twist_keyboard.py" pkg="teleop_twist_keyboard" output="screen"/>
+</launch>
+
+
+
+
+
+

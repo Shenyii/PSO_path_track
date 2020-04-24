@@ -99,14 +99,19 @@ void particle_swarm_opt::updateParticleSwarm()
         {
             a = swarm_[0].v_[j] - 0.1 * max_lin_acc_ * det_T_;
             b = swarm_[0].v_[j] + 0.1 * max_lin_acc_ * det_T_;
+            a = now_v_ - a > max_lin_acc_ * det_T_ ? (now_v_ - max_lin_acc_ * det_T_) : a;
+            b = b - now_v_ > max_lin_acc_ * det_T_ ? (now_v_ + max_lin_acc_ * det_T_) : b;
             a = a < 0 ? 0 : a;
             b = b < 0 ? 0 : b;
             swarm_[i].v_[j] = myRand(a, b);
             a = swarm_[0].w_[j] - 0.1 * max_ang_acc_ * det_T_;
             b = swarm_[0].w_[j] + 0.1 * max_ang_acc_ * det_T_;
+            a = now_w_ - a > max_ang_acc_ * det_T_ ? (now_w_ - max_ang_acc_ * det_T_) : a;
+            b = b - now_w_ > max_ang_acc_ * det_T_ ? (now_w_ + max_ang_acc_ * det_T_) : b;
             swarm_[i].w_[j] = myRand(a, b);
         }
         swarm_[i].fit_value_ = calculateFitnessValue(swarm_[i]);
+        //printParticle(swarm_[i]);
     }
     for(int i = swarm_.size() / 4; i < swarm_.size(); i++)
     {
@@ -136,6 +141,7 @@ void particle_swarm_opt::updateParticleSwarm()
             }
         }
         swarm_[i].fit_value_ = calculateFitnessValue(swarm_[i]);
+        //printParticle(swarm_[i]);
     }
 }
 
@@ -155,14 +161,20 @@ float particle_swarm_opt::calculateFitnessValue(one_particle particle)
         x = x + v / w * (sin(theta + w * det_T_) - sin(theta));
         y = y + v / w * (cos(theta) - cos(theta + w * det_T_));
         theta += w * det_T_;
-        ans = ans + (x - ref_path_[i].x) * (x - ref_path_[i].x) 
-                  + (y - ref_path_[i].y) * (y - ref_path_[i].y);
+        float det_x0 = x - ref_path_[i].x;
+        float det_y0 = y - ref_path_[i].y;
+        float det_theta0 = theta - ref_path_[i].theta;
+        float det_x1 = det_x0 * cos(det_theta0) + det_y0 * sin(det_theta0);
+        float det_y1 = det_y0 * cos(det_theta0) - det_x0 * sin(det_theta0);
+        float det_theta1;
+        ans = ans + 1.5 * det_x1 * det_x1 + det_y1 * det_y1 + 0.3 * det_theta0 * det_theta0;
     }
     return ans;
 }
 
 void particle_swarm_opt::printParticle(one_particle particle)
 {
+    cout << "********************" << endl;
     for(int i = 0; i < particle.v_.size(); i++)
     {
         cout << particle.v_[i] << ",  ";
@@ -174,9 +186,8 @@ void particle_swarm_opt::printParticle(one_particle particle)
     }
     cout << endl;
     cout << particle.fit_value_ << endl;
-    cout << "/////" << now_x_ << endl;
-    cout << "/////" << now_y_ << endl;
-    cout << "/////" << now_theta_ << endl;
+    cout << "current pose:" << now_x_ << ", " << now_y_ << ", " << now_theta_ << endl;
+    cout << "********************" << endl << endl;
 }
 
 void particle_swarm_opt::displayTrajectory(one_particle particle, float values)
