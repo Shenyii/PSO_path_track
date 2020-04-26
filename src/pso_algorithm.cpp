@@ -4,7 +4,7 @@ particle_swarm_opt::particle_swarm_opt()
 {
     srand(time(0));
     num_of_particles_ = 400;
-    num_of_iterate_ = 30;
+    num_of_iterate_ = 15;
     now_x_ = 0;
     now_y_ = 0;
     now_theta_ = 0;
@@ -38,10 +38,6 @@ geometry_msgs::Twist particle_swarm_opt::beginParticleSwarmOpt(vector<geometry_m
     {
         updateParticleSwarm();
     }
-    // for(int i = 0; i < 10; i++)
-    // {
-    //     printParticle(swarm_[40 * i]);
-    // }
     printParticle(swarm_[0]); 
     displayTrajectory(swarm_[0], 0.9);
     displayRefPath(49);
@@ -164,10 +160,11 @@ float particle_swarm_opt::calculateFitnessValue(one_particle particle)
         float det_x0 = x - ref_path_[i].x;
         float det_y0 = y - ref_path_[i].y;
         float det_theta0 = theta - ref_path_[i].theta;
-        float det_x1 = det_x0 * cos(det_theta0) + det_y0 * sin(det_theta0);
-        float det_y1 = det_y0 * cos(det_theta0) - det_x0 * sin(det_theta0);
-        float det_theta1;
-        ans = ans + 1.5 * det_x1 * det_x1 + det_y1 * det_y1 + 0.3 * det_theta0 * det_theta0;
+        det_theta0 = det_theta0 > pi ? det_theta0 - 2 * pi : det_theta0;
+        det_theta0 = det_theta0 < -pi ? det_theta0 + 2 * pi : det_theta0;
+        float det_x1 = det_x0 * cos(ref_path_[i].theta) + det_y0 * sin(ref_path_[i].theta);
+        float det_y1 = det_y0 * cos(ref_path_[i].theta) - det_x0 * sin(ref_path_[i].theta);
+        ans = ans + 0.3 * det_x1 * det_x1 + 1.5 * det_y1 * det_y1 + 0.3 * det_theta0 * det_theta0;
     }
     return ans;
 }
@@ -187,7 +184,7 @@ void particle_swarm_opt::printParticle(one_particle particle)
     cout << endl;
     cout << particle.fit_value_ << endl;
     cout << "current pose:" << now_x_ << ", " << now_y_ << ", " << now_theta_ << endl;
-    cout << "********************" << endl << endl;
+    cout << "********************" << endl;
 }
 
 void particle_swarm_opt::displayTrajectory(one_particle particle, float values)

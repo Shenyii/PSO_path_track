@@ -13,6 +13,8 @@
 
 using namespace std;
 
+#define pi 3.14159265
+
 class one_particle
 {
 public:
