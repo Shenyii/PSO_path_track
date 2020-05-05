@@ -28,10 +28,11 @@ class particle_swarm_opt
 public:
     particle_swarm_opt();
     ~particle_swarm_opt();
-    geometry_msgs::Twist beginParticleSwarmOpt(vector<geometry_msgs::Pose2D> ref_path, geometry_msgs::Pose2D now_pose, float now_v, float now_w);
+    geometry_msgs::Twist beginParticleSwarmOpt(vector<geometry_msgs::Pose2D> ref_path, vector<geometry_msgs::Pose2D> ref_path2, geometry_msgs::Pose2D now_pose, float now_v, float now_w, double det_t, float ave_vel);
 
 private:
     int num_of_particles_;
+    int num_of_particles2_;
     int num_of_iterate_;
     float now_x_;
     float now_y_;
@@ -41,16 +42,25 @@ private:
     float max_lin_acc_;
     float max_ang_acc_;
     float det_T_;
+    double det_t_;
+    float ave_vel_;
     vector<one_particle> swarm_;
+    one_particle last_best_swarm_;
+    vector<one_particle> swarm2_;
     vector<geometry_msgs::Pose2D> ref_path_;
+    vector<geometry_msgs::Pose2D> ref_path2_;
 
     ros::NodeHandle n_;
     ros::Publisher pub_trajectory_;
     ros::Publisher pub_ref_path_;
 
     void initParticleSwarm();
+    void initParticleSwarm2();
     void updateParticleSwarm();
+    void updateParticleSwarm2();
     float calculateFitnessValue(one_particle particle);
+    float calculateFitnessValueTest(one_particle particle);
+    void calculateFitnessValue2();
 
     void printParticle(one_particle particle);
     void displayTrajectory(one_particle particle, float values);

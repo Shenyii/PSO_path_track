@@ -29,15 +29,16 @@ void LPath(particle_swarm_opt& test)
 {
     geometry_msgs::Twist vel;
     vector<geometry_msgs::Pose2D> ref_path;
+    vector<geometry_msgs::Pose2D> ref_path2;
     geometry_msgs::Pose2D now_pose;
     ref_path.resize(4);
     double last_time = ros::Time::now().toSec();
-    float slope_anglar = -1;
+    double det_t;
+    float slope_anglar = 0;
     float slope = tan(slope_anglar);
     float ave_vel = 0.5;
     while(ros::ok())
     {
-        last_time = ros::Time::now().toSec();
         ros::spinOnce();
         ref_path[0].x = (car_in_map_g->x() + slope * car_in_map_g->y()) / (slope * slope +1) + 0.2 * ave_vel * cos(slope_anglar); 
         ref_path[0].y = slope * ref_path[0].x + 0.2 * ave_vel * sin(slope_anglar); 
@@ -53,10 +54,12 @@ void LPath(particle_swarm_opt& test)
         now_pose.y = car_in_map_g->y();
         float theta = acos(2 * car_in_map_g->ow() * car_in_map_g->ow() - 1);
         now_pose.theta = car_in_map_g->oz() * car_in_map_g->ow() < 0 ? (0 - theta) : theta;
-        vel = test.beginParticleSwarmOpt(ref_path, now_pose, now_v_g, now_w_g);
+        vel = test.beginParticleSwarmOpt(ref_path, ref_path2, now_pose, now_v_g, now_w_g, det_t, ave_vel);
         pub_vel_g.publish(vel);
         addTrajectory(now_pose.x, now_pose.y);
-        cout << "The PSO running time is: " << ros::Time::now().toSec() - last_time << endl << endl;
+        det_t = ros::Time::now().toSec() - last_time;
+        cout << "The PSO running time is: " << det_t << endl << endl;
+        last_time = ros::Time::now().toSec();
     }
 }
 
@@ -64,9 +67,11 @@ void SPath(particle_swarm_opt& test)
 {
     geometry_msgs::Twist vel;
     vector<geometry_msgs::Pose2D> ref_path;
+    vector<geometry_msgs::Pose2D> ref_path2;
     geometry_msgs::Pose2D now_pose;
     ref_path.resize(4);
     double last_time = ros::Time::now().toSec();
+    double det_t = 0.1;
     float ave_vel = 1;
     float theta0;
     vector<geometry_msgs::Pose2D> ref;
@@ -90,7 +95,6 @@ void SPath(particle_swarm_opt& test)
 
     while(ros::ok())
     {
-        last_time = ros::Time::now().toSec();
         ros::spinOnce();
         
         theta0 = atan(car_in_map_g->y() / (car_in_map_g->x() - 1));
@@ -138,10 +142,109 @@ void SPath(particle_swarm_opt& test)
         // cout << ref_path[2].x << ", " << ref_path[2].y << ", " << ref_path[2].theta << endl;
         // cout << ref_path[3].x << ", " << ref_path[3].y << ", " << ref_path[3].theta << endl;
         // //////////////////////////////
-        vel = test.beginParticleSwarmOpt(ref_path, now_pose, now_v_g, now_w_g);
+        vel = test.beginParticleSwarmOpt(ref_path, ref_path2, now_pose, now_v_g, now_w_g, det_t, ave_vel);
         pub_vel_g.publish(vel);
         addTrajectory(now_pose.x, now_pose.y);
-        cout << "The PSO running time is: " << ros::Time::now().toSec() - last_time << endl << endl;
+        det_t = ros::Time::now().toSec() - last_time;
+        cout << "The PSO running time is: " << det_t << endl << endl;
+        last_time = ros::Time::now().toSec();
+    }
+}
+
+void SPath2(particle_swarm_opt& test)
+{
+    geometry_msgs::Twist vel;
+    vector<geometry_msgs::Pose2D> ref_path;
+    vector<geometry_msgs::Pose2D> ref_path2;
+    geometry_msgs::Pose2D now_pose;
+    ref_path.resize(4);
+    ref_path2.resize(150);
+    double last_time = ros::Time::now().toSec();
+    double det_t = 0.1;
+    float ave_vel = 1;
+    float theta0;
+    vector<geometry_msgs::Pose2D> ref;
+    ref.resize(1000);
+    theta0 = pi;
+    for(int i = 0; i < 500; i++)
+    {
+        ref[i].x = cos(theta0) + 1;
+        ref[i].y = sin(theta0);
+        ref[i].theta = theta0 - pi / 2;
+        theta0 -= pi / 500;
+    }
+    theta0 = -pi;
+    for(int i = 500; i < 1000; i++)
+    {
+        ref[i].x = cos(theta0) + 3;
+        ref[i].y = sin(theta0);
+        ref[i].theta = theta0 + pi / 2;
+        theta0 += pi / 500;
+    }
+
+    while(ros::ok())
+    {
+        ros::spinOnce();
+        
+        theta0 = atan(car_in_map_g->y() / (car_in_map_g->x() - 1));
+        if((car_in_map_g->x() < 1) && (car_in_map_g->y() > 0))
+        {
+            theta0 = theta0 + pi;
+        }
+        else if((car_in_map_g->x() < 1) && (car_in_map_g->y() < 0))
+        {
+            theta0 = theta0 - pi;
+        }
+        if(theta0 > 0)
+        {
+            for(int i = 0; i < ref_path.size(); i++)
+            {
+                ref_path[i] = ref[500 * (pi - theta0) / pi + (i + 1) * (500 * 0.2 * ave_vel / pi)];
+            }
+            for(int i = 0; i < ref_path2.size(); i++)
+            {
+                ref_path2[i] = ref[500 * (pi - theta0) / pi + i];
+            }
+        }
+        else
+        {
+            theta0 = atan(car_in_map_g->y() / (car_in_map_g->x() - 3));
+            if((car_in_map_g->x() < 3) && (car_in_map_g->y() > 0))
+            {
+                theta0 = theta0 + pi;
+            }
+            else if((car_in_map_g->x() < 3) && (car_in_map_g->y() < 0))
+            {
+                theta0 = theta0 - pi;
+            }
+            for(int i = 0; i < ref_path.size(); i++)
+            {
+                ref_path[i] = ref[500 + 500 * (pi + theta0) / pi + (i + 1) * (500 * 0.2 * ave_vel / pi)];
+            }
+            for(int i = 0; i < ref_path2.size(); i++)
+            {
+                ref_path2[i] = ref[500 + 500 * (pi + theta0) / pi + i];
+            }
+        }
+        
+        addTrajectory(ref_path[0].x, ref_path[0].y);
+        now_pose.x = car_in_map_g->x();
+        now_pose.y = car_in_map_g->y();
+        float theta = acos(2 * car_in_map_g->ow() * car_in_map_g->ow() - 1);
+        now_pose.theta = car_in_map_g->oz() * car_in_map_g->ow() < 0 ? (0 - theta) : theta;
+        // //////////////////////////////
+        // cout << now_pose.x << ", " << now_pose.y << ", " << now_pose.theta << endl;
+        // cout << ref_path[0].x << ", " << ref_path[0].y << ", " << ref_path[0].theta << endl;
+        // cout << ref_path[1].x << ", " << ref_path[1].y << ", " << ref_path[1].theta << endl;
+        // cout << ref_path[2].x << ", " << ref_path[2].y << ", " << ref_path[2].theta << endl;
+        // cout << ref_path[3].x << ", " << ref_path[3].y << ", " << ref_path[3].theta << endl;
+        // //////////////////////////////
+        vel = test.beginParticleSwarmOpt(ref_path, ref_path2, now_pose, now_v_g, now_w_g, det_t, ave_vel);
+        pub_vel_g.publish(vel);
+        addTrajectory(now_pose.x, now_pose.y);
+        det_t = ros::Time::now().toSec() - last_time;
+        cout << "The PSO running time is: " << det_t << endl << endl;
+        last_time = ros::Time::now().toSec();
     }
 }
 
@@ -149,15 +252,16 @@ void OPath(particle_swarm_opt& test)
 {
     geometry_msgs::Twist vel;
     vector<geometry_msgs::Pose2D> ref_path;
+    vector<geometry_msgs::Pose2D> ref_path2;
     geometry_msgs::Pose2D now_pose;
     ref_path.resize(4);
     double last_time = ros::Time::now().toSec();
+    double det_t = 0.1;
     float ave_vel = 0.5;
     float theta0;
     float theta1;
     while(ros::ok())
     {
-        last_time = ros::Time::now().toSec();
         ros::spinOnce();
         theta0 = atan(car_in_map_g->y() / (car_in_map_g->x() - 1));
         if((car_in_map_g->x() < 1) && (car_in_map_g->y() > 0))
@@ -189,10 +293,12 @@ void OPath(particle_swarm_opt& test)
         cout << ref_path[2].x << ", " << ref_path[2].y << ", " << ref_path[2].theta << endl;
         cout << ref_path[3].x << ", " << ref_path[3].y << ", " << ref_path[3].theta << endl;
         //////////////////////////////
-        vel = test.beginParticleSwarmOpt(ref_path, now_pose, now_v_g, now_w_g);
+        vel = test.beginParticleSwarmOpt(ref_path, ref_path2, now_pose, now_v_g, now_w_g, det_t, ave_vel);
         pub_vel_g.publish(vel);
         addTrajectory(now_pose.x, now_pose.y);
-        cout << "The PSO running time is: " << ros::Time::now().toSec() - last_time << endl << endl;
+        det_t = ros::Time::now().toSec() - last_time;
+        cout << "The PSO running time is: " << det_t << endl << endl;
+        last_time = ros::Time::now().toSec();
     }
 }
 
@@ -213,7 +319,7 @@ int main(int argc, char** argv)
     sub_vel_ = nh.subscribe("/actural_velocity_of_car", 1, subCmdVel);
     particle_swarm_opt test1;
     double last_time = ros::Time::now().toSec();
-    SPath(test1);
+    SPath2(test1);
     cout << "The PSO running time is: " << ros::Time::now().toSec() - last_time << endl;
     
     return 0;
