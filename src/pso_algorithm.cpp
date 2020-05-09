@@ -52,7 +52,7 @@ geometry_msgs::Twist particle_swarm_opt::beginParticleSwarmOpt(vector<geometry_m
     // {
     //     updateParticleSwarm2();
     // }
-    printParticle(swarm_[0]); 
+    // printParticle(swarm_[0]); 
     //printParticle(swarm2_[0]); 
     displayTrajectory(swarm_[0], 0.9);
     displayRefPath(49);

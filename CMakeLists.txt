@@ -212,3 +212,11 @@ include_directories(
 add_executable(pso_path_tracking src/main.cpp src/pso_algorithm.cpp src/tf_listerner.cpp)
 target_link_libraries(pso_path_tracking ${catkin_LIBRARIES})
 add_dependencies(pso_path_tracking PSO_path_track_gencpp)
+
+add_executable(pid_test src/pid_test.cpp src/tf_listerner.cpp)
+target_link_libraries(pid_test ${catkin_LIBRARIES})
+add_dependencies(pid_test PSO_path_track_gencpp)
+
+add_executable(pure_pursuit src/pure_pursuit.cpp src/tf_listerner.cpp)
+target_link_libraries(pure_pursuit ${catkin_LIBRARIES})
+add_dependencies(pure_pursuit PSO_path_track_gencpp)

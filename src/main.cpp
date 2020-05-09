@@ -14,6 +14,8 @@ float now_v_g = 0;
 float now_w_g = 0;
 ros::Subscriber sub_vel_;
 
+float data_g[10];
+
 sensor_msgs::PointCloud trajectory;
 void addTrajectory(float x, float y)
 {
@@ -205,6 +207,9 @@ void SPath2(particle_swarm_opt& test)
             {
                 ref_path2[i] = ref[500 * (pi - theta0) / pi + i];
             }
+            data_g[0] = ref[500 * (pi - theta0) / pi].x;
+            data_g[1] = ref[500 * (pi - theta0) / pi].y;
+            data_g[2] = ref[500 * (pi - theta0) / pi].theta;
         }
         else
         {
@@ -225,6 +230,9 @@ void SPath2(particle_swarm_opt& test)
             {
                 ref_path2[i] = ref[500 + 500 * (pi + theta0) / pi + i];
             }
+            data_g[0] = ref[500 + 500 * (pi + theta0) / pi].x;
+            data_g[1] = ref[500 + 500 * (pi + theta0) / pi].y;
+            data_g[2] = ref[500 + 500 * (pi + theta0) / pi].theta;
         }
         
         addTrajectory(ref_path[0].x, ref_path[0].y);
@@ -232,6 +240,9 @@ void SPath2(particle_swarm_opt& test)
         now_pose.y = car_in_map_g->y();
         float theta = acos(2 * car_in_map_g->ow() * car_in_map_g->ow() - 1);
         now_pose.theta = car_in_map_g->oz() * car_in_map_g->ow() < 0 ? (0 - theta) : theta;
+        data_g[3] = now_pose.x;
+        data_g[4] = now_pose.y;
+        data_g[5] = now_pose.theta;
         // //////////////////////////////
         // cout << now_pose.x << ", " << now_pose.y << ", " << now_pose.theta << endl;
         // cout << ref_path[0].x << ", " << ref_path[0].y << ", " << ref_path[0].theta << endl;
@@ -243,7 +254,10 @@ void SPath2(particle_swarm_opt& test)
         pub_vel_g.publish(vel);
         addTrajectory(now_pose.x, now_pose.y);
         det_t = ros::Time::now().toSec() - last_time;
-        cout << "The PSO running time is: " << det_t << endl << endl;
+        //cout << "The PSO running time is: " << det_t << endl << endl;
+        cout << data_g[0] << ", " << data_g[1] << ", " << data_g[2] << ", "
+             << data_g[3] << ", " << data_g[4] << ", " << data_g[5] << ", "
+             << data_g[6] << ", " << data_g[7] << endl;
         last_time = ros::Time::now().toSec();
     }
 }
@@ -306,6 +320,8 @@ void subCmdVel(geometry_msgs::Twist msg)
 {
     now_v_g = msg.linear.x;
     now_w_g = msg.angular.z;
+    data_g[6] = msg.linear.x;
+    data_g[7] = msg.angular.z;
 }
 
 int main(int argc, char** argv)
