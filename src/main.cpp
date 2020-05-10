@@ -184,6 +184,7 @@ void SPath2(particle_swarm_opt& test)
         theta0 += pi / 500;
     }
 
+    data_g[8] = 0;
     while(ros::ok())
     {
         ros::spinOnce();
@@ -255,9 +256,10 @@ void SPath2(particle_swarm_opt& test)
         addTrajectory(now_pose.x, now_pose.y);
         det_t = ros::Time::now().toSec() - last_time;
         //cout << "The PSO running time is: " << det_t << endl << endl;
-        cout << data_g[0] << ", " << data_g[1] << ", " << data_g[2] << ", "
-             << data_g[3] << ", " << data_g[4] << ", " << data_g[5] << ", "
-             << data_g[6] << ", " << data_g[7] << endl;
+        data_g[8] += det_t;
+        cout << data_g[0] << " " << data_g[1] << " " << data_g[2] << " "
+             << data_g[3] << " " << data_g[4] << " " << data_g[5] << " "
+             << data_g[6] << " " << data_g[7] << " " << data_g[8] << endl;
         last_time = ros::Time::now().toSec();
     }
 }
